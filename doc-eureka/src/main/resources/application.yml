@@ -1,0 +1,39 @@
+spring:
+  profiles: node1
+server:
+  port: 9301
+eureka:
+  instance:
+    hostname: eureka1
+    lease-renewal-interval-in-seconds: 5 #与注册中心 心跳时间
+    lease-expiration-duration-in-seconds: 15 #超时 服务失效时间
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+  client:
+    register-with-eureka: true # 是否让该服务在注册中心上注册
+    fetch-registry: true # 是否从eureka服务端获取eureka注册信息
+    service-url:
+      defaultZone: http://eureka2:9302/eureka/
+  server:
+    eviction-interval-timer-in-ms: 5000 #清理间隔 5s
+    renewal-threshold-update-interval-ms: 10000 #阈值更新时间间隔 10s  Renews threshold
+
+---
+
+spring:
+  profiles: node2
+server:
+  port: 9302
+eureka:
+  instance:
+    hostname: eureka2
+    lease-renewal-interval-in-seconds: 5 #与注册中心 心跳时间
+    lease-expiration-duration-in-seconds: 15 #超时 服务失效时间
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+  client:
+    register-with-eureka: true # 是否让该服务在注册中心上注册
+    fetch-registry: true # 是否从eureka服务端获取eureka注册信息
+    service-url:
+      defaultZone: http://eureka1:9301/eureka/
+  server:
+    eviction-interval-timer-in-ms: 5000 #清理间隔 5s
+    renewal-threshold-update-interval-ms: 10000 #阈值更新时间间隔 10s
