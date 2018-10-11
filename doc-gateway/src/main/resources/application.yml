@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: doc-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+      - id: baidu
+        uri: http://baidu.com
+        predicates:
+        - Path=/baidu/**
+server:
+  port: 9090
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka1:9301/eureka,http://eureka2:9302/eureka

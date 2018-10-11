@@ -5,7 +5,7 @@
 
     <groupId>com.woasis</groupId>
     <artifactId>doc-manage</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>${doc.manage.version}</version>
     <packaging>pom</packaging>
 
     <name>doc-manage</name>
@@ -22,10 +22,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
+        <doc.manage.version>1.0.0</doc.manage.version>
     </properties>
 
     <modules>
         <module>doc-eureka</module>
+        <module>doc-gateway</module>
+        <module>doc-user</module>
+        <module>doc-common</module>
     </modules>
 
     <dependencies>
