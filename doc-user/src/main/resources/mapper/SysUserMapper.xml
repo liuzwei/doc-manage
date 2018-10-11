@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~
+  ~ /*************************************************************************
+  ~ Copyright (c) 2015-2018 北京无线绿洲通信技术有限公司.
+  ~
+  ~ projectName:  nesbp
+  ~    fileName:  SysUserMapper.xml
+  ~       Date:  17-11-20 下午3:50
+  ~     Author:  Liu
+  ~
+  ~  *************************************************************************/
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.woasis.docuser.mapper.SysUserMapper">
+	<select id="queryObject" resultType="com.woasis.docuser.entity.SysUserEntity">
+		select * from sys_user where user_id = #{value}
+	</select>
+
+	<select id="selectUserByMobileNum"  resultType="com.woasis.docuser.entity.SysUserEntity">
+		select * from sys_user where mobile = #{mobile}
+	</select>
+	
+	<select id="queryList" resultType="com.woasis.docuser.entity.SysUserEntity">
+		select u.*, (select d.name from sys_dept d where d.dept_id = u.dept_id) deptName from sys_user u
+		<where>
+			<if test="username != null and username.trim() != ''">
+				and u.`username` like concat('%',#{username},'%')
+			</if>
+
+			<!--  数据过滤  -->
+			${filterSql}
+		</where>
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by u.${sidx} ${order}
+			</when>
+			<otherwise>
+				order by u.user_id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+	<select id="queryTotal" resultType="int">
+		select count(*) from sys_user u
+		<where>
+			<if test="username != null and username.trim() != ''">
+				and u.`username` like concat('%',#{username},'%')
+			</if>
+
+			<!--  数据过滤  -->
+			${filterSql}
+		</where>
+	</select>
+	
+	<!-- 查询用户的所有权限 -->
+	<select id="queryAllPerms" resultType="string">
+		select m.perms from sys_user_role ur 
+			LEFT JOIN sys_role_menu rm on ur.role_id = rm.role_id
+			LEFT JOIN sys_menu m on rm.menu_id = m.menu_id
+		where ur.user_id = #{userId}
+	</select>
+	
+	<!-- 查询用户的所有菜单ID --> 
+	<select id="queryAllMenuId" resultType="long">
+		select distinct rm.menu_id from sys_user_role ur 
+			LEFT JOIN sys_role_menu rm on ur.role_id = rm.role_id 
+		where ur.user_id = #{userId}
+	</select>
+	
+	<select id="queryByUserName" resultType="com.woasis.docuser.entity.SysUserEntity">
+		select * from sys_user where username = #{username}
+	</select>
+
+
+	<select id="getBatteryCenterUser" resultType="com.woasis.docuser.entity.SysUserEntity">
+		SELECT  * FROM sys_user WHERE user_id IN
+		(
+		SELECT  DISTINCT ur.user_id FROM sys_user ur
+		 LEFT JOIN sys_user_role u_r  ON ur.user_id = u_r.user_id
+		 LEFT JOIN sys_role rl ON rl.role_id = u_r.role_id
+		 LEFT JOIN sys_role_menu r_m  ON rl.role_id = r_m.role_id
+		 LEFT JOIN sys_menu mn   ON mn.menu_id = r_m.menu_id
+		 WHERE mn.name = '发送消息'
+		 )
+	</select>
+
+	<insert id="save" parameterType="com.woasis.docuser.entity.SysUserEntity" useGeneratedKeys="true" keyProperty="userId">
+		insert into sys_user
+		(
+			`user_id`, 
+			`username`, 
+			`password`,
+			`salt`,
+			`email`, 
+			`mobile`, 
+			`status`,
+			`dept_id`,
+			`create_time`
+		)
+		values
+		(
+			#{userId}, 
+			#{username}, 
+			#{password},
+			#{salt},
+			#{email}, 
+			#{mobile}, 
+			#{status},
+			#{deptId},
+			#{createTime}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.woasis.docuser.entity.SysUserEntity">
+		update sys_user 
+		<set> 
+			<if test="username != null">`username` = #{username}, </if>
+			<if test="password != null and password.trim() != ''">`password` = #{password}, </if>
+			<if test="email != null">`email` = #{email}, </if>
+			<if test="mobile != null">`mobile` = #{mobile}, </if>
+			<if test="status != null">`status` = #{status}, </if>
+			<if test="deptId != null">`dept_id` = #{deptId}, </if>
+		</set>
+		where user_id = #{userId}
+	</update>
+	
+	<update id="updatePassword" parameterType="map">
+		update sys_user set `password` = #{newPassword} 
+			where user_id = #{userId} and password = #{password}
+	</update>
+	
+	<delete id="deleteBatch">
+		delete from sys_user where user_id in 
+		<foreach item="userId" collection="array" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+		;
+		delete from sys_user_role where user_id in 
+		<foreach item="userId" collection="array" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+	</delete>
+
+</mapper>

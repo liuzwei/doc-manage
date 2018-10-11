@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~
+  ~ /*************************************************************************
+  ~ Copyright (c) 2015-2018 北京无线绿洲通信技术有限公司.
+  ~
+  ~ projectName:  nesbp
+  ~    fileName:  SysMenuMapper.xml
+  ~       Date:  17-11-20 下午3:46
+  ~     Author:  Liu
+  ~
+  ~  *************************************************************************/
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.woasis.docuser.mapper.SysMenuMapper">
+
+	<select id="queryObject" resultType="com.woasis.docuser.entity.SysMenuEntity">
+		select *,(select `name` from sys_menu temp where temp.menu_id =sysmenu.parent_id) as parent_name from sys_menu sysmenu where sysmenu.menu_id = #{value}
+	</select>
+	
+	<insert id="save" parameterType="com.woasis.docuser.entity.SysMenuEntity">
+		insert into sys_menu
+		(
+			`menu_id`, 
+			`parent_id`, 
+			`name`, 
+			`url`, 
+			`perms`, 
+			`type`, 
+			`icon`, 
+			`order_num`
+		)
+		values
+		(
+			#{menuId}, 
+			#{parentId}, 
+			#{name}, 
+			#{url}, 
+			#{perms}, 
+			#{type}, 
+			#{icon}, 
+			#{orderNum}
+		)
+	</insert>
+	
+	<select id="queryListParentId" resultType="com.woasis.docuser.entity.SysMenuEntity">
+		select * from sys_menu where parent_id = #{parentId} order by order_num asc 
+	</select>
+	
+	<select id="queryNotButtonList" resultType="com.woasis.docuser.entity.SysMenuEntity">
+		select * from sys_menu where type != 2 order by order_num asc 
+	</select>
+	
+	<select id="queryList" resultType="com.woasis.docuser.entity.SysMenuEntity">
+		select m.*,(select p.name from sys_menu p where p.menu_id = m.parent_id) as parentName 
+			from sys_menu m
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by m.${sidx} ${order}
+			</when>
+			<otherwise>
+				order by m.order_num asc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+	<!-- 查询用户的权限列表 --> 
+	<select id="queryUserList" resultType="com.woasis.docuser.entity.SysMenuEntity">
+		select distinct m.*,(select p.name from sys_menu p where p.menu_id = m.parent_id) as parentName
+			from sys_user_role ur 
+			LEFT JOIN sys_role_menu rm on ur.role_id = rm.role_id 
+			LEFT JOIN sys_menu m on rm.menu_id = m.menu_id 
+		where ur.user_id = #{userId} order by m.order_num asc
+	</select>
+
+	<!--查询按钮权限列表-->
+	<select id="queryButtonPremissions" resultType="com.woasis.docuser.entity.SysMenuEntity">
+		SELECT DISTINCT
+				rm.menu_id,
+				menu.name,
+				menu.perms
+		FROM
+			sys_user_role ur
+			LEFT JOIN sys_role_menu rm ON ur.role_id = rm.role_id
+			left JOIN sys_menu menu on menu.menu_id=rm.menu_id
+		WHERE
+			menu.type=2 and
+			ur.user_id = #{userId}
+	</select>
+	
+	<select id="queryTotal" resultType="int">
+		select count(*) from sys_menu
+	</select>
+	 
+	<update id="update" parameterType="com.woasis.docuser.entity.SysMenuEntity">
+		update sys_menu 
+		<set> 
+			<if test="parentId != null">`parent_id` = #{parentId}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="url != null">`url` = #{url}, </if>
+			<if test="perms != null">`perms` = #{perms}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="icon != null">`icon` = #{icon}, </if>
+			<if test="orderNum != null">`order_num` = #{orderNum}</if>
+		</set>
+		where menu_id = #{menuId}
+	</update>
+
+
+	<delete id="deleteById">
+		delete from sys_menu where menu_id=#{menuId};delete from sys_role_menu where menu_id =#{menuId}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from sys_menu where menu_id in 
+		<foreach item="menuId" collection="array" open="(" separator="," close=")">
+			#{menuId}
+		</foreach>
+		;
+		delete from sys_role_menu where menu_id in 
+		<foreach item="menuId" collection="array" open="(" separator="," close=")">
+			#{menuId}
+		</foreach>
+	</delete>
+	
+</mapper>

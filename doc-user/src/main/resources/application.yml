@@ -1,0 +1,44 @@
+# 驱动配置信息
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://10.0.1.100:13306/doc-user?allowMultiQueries=true&useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: woasis123456
+    driver-class-name: com.mysql.jdbc.Driver
+    hikari:
+      max-lifetime: 1765000  #一个连接的生命时长（毫秒），超时而且没被使用则被释放（retired），缺省:30分钟，建议设置比数据库超时时长少30秒以上
+      maximum-pool-size: 16
+  application:
+    name: doc-user
+mybatis:
+  type-aliases-package: com.woasis.docuser.entity
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    mapUnderscoreToCamelCase: true  #开启开启驼峰命名转换
+mapper:
+  mappers: com.woasis.docuser.util.DocMapper
+  not-empty: false
+  identity: MYSQL
+pagehelper:
+  helper-dialect: mysql
+  params: count=countSql
+server:
+  port: 9001
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka1:9301/eureka/,http://eureka2:9302/eureka/
+  instance:
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 15
+    health-check-url-path: /health
+#定义各种额外的详情给服务端显示
+info:
+  name: "@project.name@" #从pom.xml中获取
+  description: "@project.description@"
+  version: "@project.version@"
+  spring-boot-version: "@project.parent.version@"
+management:
+  security:
+    enabled: false
