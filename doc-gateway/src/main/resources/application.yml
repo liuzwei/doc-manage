@@ -11,6 +11,8 @@ spring:
         uri: http://baidu.com
         predicates:
         - Path=/baidu/**
+      - id: doc-user
+        uri: lb:/
 server:
   port: 9090
 eureka:
